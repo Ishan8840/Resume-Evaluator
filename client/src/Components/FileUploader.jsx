@@ -1,12 +1,27 @@
 import "./FileUploader.css";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useDropzone } from 'react-dropzone';
+
 
 function FileUploader() {
   const [file, setFile] = useState(null);
   const [status, setStatus] = useState("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [extractedText, setExtractedText] = useState("");
+  const navigate = useNavigate();
+
+  const onDrop = useCallback(acceptedFiles => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+    setFile(file);
+  }, [])
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+    }
+  })
 
   function handleFileChange(e) {
     if (e.target.files) {
@@ -36,11 +51,17 @@ function FileUploader() {
           setUploadProgress(progress);
         }
       });
-
-      setExtractedText(response.data.text);
-
       setStatus("success");
       setUploadProgress(100);
+
+      navigate("/analyse", {
+        state: {
+          text: response.data.text,
+          sections: response.data.sections,
+          summary: response.data.summary
+        }
+      })
+
     } catch {
       setStatus("error");
       setUploadProgress(0);
@@ -51,7 +72,14 @@ function FileUploader() {
     <div className="container">
       <h1 className="web-title">Resume Evaluator</h1>
 
-      <input onChange={handleFileChange} type="file" accept=".pdf" className="pdf-input" />
+      <div {...getRootProps()}>
+        <input {...getInputProps()} />
+        {
+          isDragActive ?
+            <p>Drop the files here ...</p> :
+            <p>Drag 'n' drop some files here, or click to select files</p>
+        }
+      </div>
 
       {file && (
         <div className="file-info">
@@ -75,13 +103,6 @@ function FileUploader() {
 
       {file && status === "error" && (
         <p className="error">Upload Failed</p>
-      )}
-
-      {extractedText && (
-        <div>
-          <h2>Extracted Text</h2>
-          <pre>{extractedText}</pre>
-        </div>
       )}
 
     </div>
