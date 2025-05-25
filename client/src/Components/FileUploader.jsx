@@ -23,12 +23,6 @@ function FileUploader() {
     }
   })
 
-  function handleFileChange(e) {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
-    }
-  }
-
   async function handleFileUpload() {
     if (!file) {
       return;
