@@ -7,6 +7,7 @@ import { useDropzone } from 'react-dropzone';
 
 function FileUploader() {
   const [file, setFile] = useState(null);
+  const [description, setDescription] = useState("");
   const [status, setStatus] = useState("idle");
   const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ function FileUploader() {
 
     const formData = new FormData();
     formData.append('file', file)
+    formData.append('description', description)
 
     try {
       const response = await axios.post('http://127.0.0.1:5000/upload', formData, {
@@ -52,7 +54,9 @@ function FileUploader() {
         state: {
           text: response.data.text,
           sections: response.data.sections,
-          summary: response.data.summary
+          summary: response.data.summary,
+          description: response.data.description,
+          grammer: response.data.grammer
         }
       })
 
@@ -83,6 +87,11 @@ function FileUploader() {
         </div>
       )}
 
+      <div className="description-container">
+        <p className="description-title">Enter a job description if you want:</p>
+        <input type="text" className="description-input" onChange={(e) => setDescription(e.target.value)} />
+      </div>
+
       {status === "uploading" && (
         <div className="progress">{uploadProgress}%</div>
       )}
@@ -98,6 +107,8 @@ function FileUploader() {
       {file && status === "error" && (
         <p className="error">Upload Failed</p>
       )}
+
+
 
     </div>
   );

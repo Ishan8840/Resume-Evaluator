@@ -2,6 +2,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pdfplumber
 import re
+import language_tool_python
+
+tool = language_tool_python.LanguageTool("en-US")
 
 app = Flask(__name__)
 cors = CORS(app, origins=["http://localhost:5173"])
@@ -44,12 +47,21 @@ def section_summary(sections):
         return f"Consider adding a section for {sections_list}."
 
 
+def grammer_check(text):
+    matches = tool.check(text)
+    if matches:
+        return "There are some grammar and spelling errors on your resume!"
+    else:
+        return "Your grammar and resume are perfect!"
+
+
 @app.route("/upload", methods=["POST", "GET"])
 def upload():
     if "file" not in request.files:
         return {"error": "No file part"}, 400
 
     file = request.files["file"]
+    description = request.form.get("description")
 
     if file.filename == "":
         return {"error": "No selected file"}, 400
@@ -60,10 +72,16 @@ def upload():
             text += page.extract_text(x_tolerance=2, y_tolerance=2) or ""
 
     section_check = section_extraction(text)
-
     summary = section_summary(section_check)
+    grammer = grammer_check(text)
 
-    return {"text": text, "sections": section_check, "summary": summary}
+    return {
+        "text": text,
+        "sections": section_check,
+        "summary": summary,
+        "description": description,
+        "grammer": grammer,
+    }
 
 
 if __name__ == "__main__":

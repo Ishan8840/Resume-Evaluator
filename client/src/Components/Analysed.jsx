@@ -18,8 +18,9 @@ function Analysed() {
     <>
       <h1>Feedback</h1>
       <h2>Sections</h2>
-      <pre>{JSON.stringify(state.sections, null, 2)}</pre>
+      <pre>{JSON.stringify(state.grammer)}</pre>
       <pre>{JSON.stringify(state.summary)}</pre>
+      <pre>{JSON.stringify(state.description)}</pre>
     </>
   );
 }
