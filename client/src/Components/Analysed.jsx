@@ -20,7 +20,7 @@ function Analysed() {
       <h2>Sections</h2>
       <pre>{JSON.stringify(state.grammer)}</pre>
       <pre>{JSON.stringify(state.summary)}</pre>
-      <pre>{JSON.stringify(state.description)}</pre>
+      <pre>{JSON.stringify(state.similarity)}</pre>
     </>
   );
 }

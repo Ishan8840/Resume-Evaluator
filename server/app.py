@@ -3,11 +3,38 @@ from flask_cors import CORS
 import pdfplumber
 import re
 import language_tool_python
+from sentence_transformers import SentenceTransformer, util
 
 tool = language_tool_python.LanguageTool("en-US")
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
 
 app = Flask(__name__)
 cors = CORS(app, origins=["http://localhost:5173"])
+
+
+def similarity_check(text, description):
+    sentences = [
+        text,
+        description,
+    ]
+
+    embeddings = model.encode(sentences)
+
+    similarities = util.cos_sim(embeddings, embeddings)
+    score = float(similarities[0][1])
+    score_percent = score * 100
+
+    score_formatted = "{:.2f}".format(score_percent)
+
+    if score_percent < 30:
+        similarity_summary = f"Your resume does not match with the job descirption very well. {score_formatted}% match"
+    elif score_percent < 60:
+        similarity_summary = f"Your resume has some key points from the job description. Consider adding some keywords. {score_formatted}% match"
+    else:
+        similarity_summary = f"Your resume is a good match. {score_formatted}% match"
+
+    return similarity_summary
 
 
 def section_extraction(text):
@@ -61,7 +88,7 @@ def upload():
         return {"error": "No file part"}, 400
 
     file = request.files["file"]
-    description = request.form.get("description")
+    description = request.form.get("description", "").strip()
 
     if file.filename == "":
         return {"error": "No selected file"}, 400
@@ -74,13 +101,14 @@ def upload():
     section_check = section_extraction(text)
     summary = section_summary(section_check)
     grammer = grammer_check(text)
+    if description:
+        similarity = similarity_check(text, description)
 
     return {
-        "text": text,
         "sections": section_check,
         "summary": summary,
-        "description": description,
         "grammer": grammer,
+        "similarity": similarity,
     }
 
 

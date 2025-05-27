@@ -52,11 +52,10 @@ function FileUploader() {
 
       navigate("/analyse", {
         state: {
-          text: response.data.text,
           sections: response.data.sections,
           summary: response.data.summary,
-          description: response.data.description,
-          grammer: response.data.grammer
+          grammer: response.data.grammer,
+          similarity: response.data.similarity
         }
       })
 
